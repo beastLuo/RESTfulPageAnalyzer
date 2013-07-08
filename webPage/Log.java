@@ -16,10 +16,11 @@ public class Log {
 		String curTime = DateFormat.getTimeInstance().format(new Date()) + "\r\n";
 		File f = new File(logPath + curName + ".log");
 		BufferedWriter w = new BufferedWriter(new FileWriter(f, append));
-		w.write(curTime);
+		//w.write(curTime);
 		w.write(content);
 		w.flush();
 		w.close();
-//		System.out.println(curTime + content);
+//		Tool.print(curTime + content);
 	}
 }
+

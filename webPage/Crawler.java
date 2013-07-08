@@ -44,7 +44,7 @@ public class Crawler {
 				++count;
 				File f = new File(path + String.valueOf(count) + ".html");
 				savePage(link, f);
-				System.out.println(String.valueOf(count));
+				Tool.print(String.valueOf(count));
 			}
 		}
 		catch (IOException e){
@@ -61,7 +61,7 @@ public class Crawler {
 			w.write(content);
 			w.flush();
 			w.close();
-			System.out.println(add);
+			Tool.print(add);
 		}
 		catch(IOException e){
 			e.printStackTrace();

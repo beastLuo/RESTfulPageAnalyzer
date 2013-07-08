@@ -9,6 +9,8 @@ import org.jsoup.select.Elements;
 import template.TemplateParser;
 import template.TemplateSelector;
 import webPage.Log;
+import webPage.Tool;
+import webPage.LogEntry;
 
 import annotate.Annotator;
 
@@ -16,6 +18,7 @@ import java.util.Iterator;
 
 public class Segmentor {
 	private static long failCount = 0;
+	private static long total = 0;
 	//读取网页，进行处理并输出，主要步骤分为：
 	//1. 预处理 preprocess()
 	//2. 匹配模板 matchTemplate()
@@ -23,28 +26,18 @@ public class Segmentor {
 	//4. 分块 divideInLayer()
 	//5. 标注 Annotator.annotate()
 	public static void transform(File source, File result)throws Exception{
+		total++;
 		Document doc = Jsoup.parse(source, "utf-8");
 		preprocess(doc);
 		String title = doc.title().toLowerCase();
-		String matchedName = matchTemplate(title);
+		String matchedName = "amazon";//matchTemplate(title);
 		if(matchedName.equals("")){
-			Log.log("Error: Template Matching Failed.\r\nFile:" + source.getPath() + "\r\n");
+//			Log.log("Error: Template Matching Failed.\r\nFile:" + source.getPath() + "\r\n");
 			failCount++;
 			return;
 		}
 		doc = Jsoup.parse(Jsoup.clean(doc.toString(), Whitelist.relaxed()));
 		doc = extract(doc);
-		
-		//通过统计Header类型不能准确地得出Header嵌套的层数
-//		int count = 0;
-//		for(int i = 1; i <= 6; i++){
-//			if(doc.getElementsByTag("h"+String.valueOf(i)).size() != 0){
-//				count++;
-//			}
-//		}
-//		for(int i = 2; i <= count; i++){
-//			divideInLayer(i, doc);
-//		}
 		
 		//检测分块中是否含有嵌套的Header，若有则进一步分块，直到所有Header分块完毕
 		int count = 2;
@@ -55,9 +48,11 @@ public class Segmentor {
 		
 		doc = Jsoup.parse(doc.toString());
 		
-		boolean success = Annotator.annotate(doc, TemplateParser.parseTemplate(TemplateSelector.getTemplate(matchedName)));
+		LogEntry entry = new LogEntry(source.getName(), source.getAbsolutePath());
+		boolean success = Annotator.annotate(doc, TemplateParser.parseTemplate(TemplateSelector.getTemplate(matchedName)), entry);
+		entry.log();
 		if(!success){
-			Log.log("Error: Annotation Failed, Template does not actually match this page.\r\nFile:" + source.getPath() + "\r\n");
+//			Log.log("Error: Annotation Failed, Template does not actually match this page.\r\nFile:" + source.getPath() + "\r\n");
 			failCount++;
 			return;
 		}
@@ -65,12 +60,13 @@ public class Segmentor {
 		bw.write(doc.toString());
 		bw.flush();
 		bw.close();
-		System.out.println(result.getPath());
+		Tool.print(result.getPath());
 	}
 	
 	//打印处理失败的条目数
 	public static void printFailure(){
-		System.out.println("failCount:" + String.valueOf(failCount));
+		Tool.print("total:" + String.valueOf(total));
+		Tool.print("failCount:" + String.valueOf(failCount));
 	}
 	
 	//预处理函数，处理Header嵌套的情况，例如：h1标签被若干个div标签包含。

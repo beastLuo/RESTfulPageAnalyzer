@@ -27,7 +27,7 @@ public class ServicePageSet {
 			Page p = new Page();
 			p.initPage(fn, path + fn);
 			st.init(p);
-			System.out.println(fn);
+//			Tool.print(fn);
 		}
 	}
 }

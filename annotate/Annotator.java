@@ -5,11 +5,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.util.HashMap;
 import template.Feature;
+import webPage.LogEntry;
 
 public class Annotator {
 	private static String[] terms = {"operation", "address", "input", "output"};
-	private static double failFactor = 0.5;
-	public static boolean annotate(Document doc, HashMap<String, Feature> template){
+	private static double failFactor = 0.1;
+	public static boolean annotate(Document doc, HashMap<String, Feature> template, LogEntry entry){
 		
 		//在网页body标签标注服务名称
 		Feature feature = template.get("service");
@@ -26,9 +27,10 @@ public class Annotator {
 				String tag = feature.clue()[1];
 				Elements objs = doc.getElementsByTag(tag);
 				for(Element obj : objs){
-					if(obj.ownText().toLowerCase().matches(key)){
+					if(match(obj, key)){
 						obj.parent().addClass(term);
 						successCount++;
+						entry.addMatched(term);
 					}
 				}
 			}else{
@@ -40,5 +42,15 @@ public class Annotator {
 		}else{
 			return true;
 		}
+	}
+	
+	private static boolean match(Element obj, String key){
+		String[] keys = key.split("#");
+		for(String k : keys){
+			if(obj.ownText().toLowerCase().matches(k)){
+				return true;
+			}
+		}
+		return false;
 	}
 }
